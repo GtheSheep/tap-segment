@@ -59,3 +59,38 @@ class EventsVolumeDailyStream(SegmentStream):
         if next_page_token:
             params["pagination.cursor"] = next_page_token
         return params
+
+
+class SourceMTUUUsageDailyStream(SegmentStream):
+    name = "source_mtu_usage_daily"
+    path = "/usage/mtu/sources/daily"
+    primary_keys = ["timestamp"]
+    replication_key = "timestamp"
+    records_jsonpath = "$.data.dailyPerSourceMTUUsage[*]"
+    schema = th.PropertiesList(
+        th.Property("sourceId", th.StringType),
+        th.Property("periodStart", th.NumberType),
+        th.Property("periodEnd", th.NumberType),
+        th.Property("anonymous", th.IntegerType),
+        th.Property("anonymousIdentified", th.IntegerType),
+        th.Property("identified", th.IntegerType),
+        th.Property("neverIdentified", th.IntegerType),
+        th.Property("timestamp", th.DateTimeType),
+    ).to_dict()
+
+
+class WorkspaceMTUUUsageDailyStream(SegmentStream):
+    name = "workspace_mtu_usage_daily"
+    path = "/usage/mtu/daily"
+    primary_keys = ["timestamp"]
+    replication_key = "timestamp"
+    records_jsonpath = "$.data.dailyWorkspaceMTUUsage[*]"
+    schema = th.PropertiesList(
+        th.Property("periodStart", th.NumberType),
+        th.Property("periodEnd", th.NumberType),
+        th.Property("anonymous", th.IntegerType),
+        th.Property("anonymousIdentified", th.IntegerType),
+        th.Property("identified", th.IntegerType),
+        th.Property("neverIdentified", th.IntegerType),
+        th.Property("timestamp", th.DateTimeType),
+    ).to_dict()
