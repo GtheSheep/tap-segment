@@ -132,6 +132,8 @@ class SourceMTUUUsageDailyStream(SegmentStream):
         }
         if next_page_token and not isinstance(next_page_token, datetime.datetime):
             params["pagination.cursor"] = next_page_token
+        print("Moo")
+        print(next_page_token)
         return params
 
 
@@ -192,6 +194,8 @@ class WorkspaceMTUUUsageDailyStream(SegmentStream):
             'pagination.count': 100,
             'period': start_date
         }
+        print("Moo")
+        print(next_page_token)
         if next_page_token and not isinstance(next_page_token, datetime.datetime):
             params["pagination.cursor"] = next_page_token
         return params
