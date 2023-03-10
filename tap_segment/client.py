@@ -47,9 +47,10 @@ class SegmentStream(RESTStream):
         self, context: Optional[dict], next_page_token: Optional[Any]
     ) -> Dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization."""
+        start_date = self.get_starting_timestamp(context)
         params: dict = {
             'pagination.count': 100,
-            'period': self.config.get('start_date')
+            'period': start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         }
         if next_page_token:
             params["pagination.cursor"] = next_page_token
