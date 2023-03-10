@@ -32,9 +32,6 @@ class SegmentStream(RESTStream):
         self, response: requests.Response, previous_token: Optional[Any]
     ) -> Optional[Any]:
         """Return a token for identifying next page or None if no more pages."""
-        # TODO: If pagination is required, return a token which can be used to get the
-        #       next page. If this is the final page, return "None" to end the
-        #       pagination loop.
         if self.next_page_token_jsonpath:
             all_matches = extract_jsonpath(
                 self.next_page_token_jsonpath, response.json()
@@ -50,9 +47,10 @@ class SegmentStream(RESTStream):
         self, context: Optional[dict], next_page_token: Optional[Any]
     ) -> Dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization."""
+        start_date = self.get_starting_timestamp(context)
         params: dict = {
             'pagination.count': 100,
-            'period': self.config.get('start_date')
+            'period': start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         }
         if next_page_token:
             params["pagination.cursor"] = next_page_token

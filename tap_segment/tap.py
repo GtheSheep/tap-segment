@@ -10,12 +10,16 @@ from tap_segment.streams import (
     SourceAPICallsDailyStream,
     WorkspaceAPICallsDailyStream,
     EventsVolumeDailyStream,
+    SourceMTUUUsageDailyStream,
+    WorkspaceMTUUUsageDailyStream,
 )
 
 STREAM_TYPES = [
     SourceAPICallsDailyStream,
     WorkspaceAPICallsDailyStream,
-    EventsVolumeDailyStream
+    EventsVolumeDailyStream,
+    SourceMTUUUsageDailyStream,
+    WorkspaceMTUUUsageDailyStream
 ]
 
 

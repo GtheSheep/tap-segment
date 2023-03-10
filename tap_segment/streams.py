@@ -1,10 +1,13 @@
 """Stream type classes for tap-segment."""
 import datetime
+import calendar
+from urllib.parse import parse_qs, urlparse
 
+import requests
 from pathlib import Path
 from typing import Any, Dict, Optional, Union, List, Iterable
-
 from singer_sdk import typing as th  # JSON Schema typing helpers
+from singer_sdk.helpers.jsonpath import extract_jsonpath
 
 from tap_segment.client import SegmentStream
 
@@ -59,3 +62,89 @@ class EventsVolumeDailyStream(SegmentStream):
         if next_page_token:
             params["pagination.cursor"] = next_page_token
         return params
+
+
+def add_months(sourcedate, months):
+    month = sourcedate.month - 1 + months
+    year = sourcedate.year + month // 12
+    month = month % 12 + 1
+    day = min(sourcedate.day, calendar.monthrange(year,month)[1])
+    return datetime.datetime(year, month, day)
+
+
+class MTUUsageDailyStream(SegmentStream):
+    primary_keys = ["timestamp"]
+    replication_key = "timestamp"
+
+    def post_process(self, row: dict, context: Optional[dict] = None) -> Optional[dict]:
+        row["anonymous"] = int(row["anonymous"])
+        row["anonymousIdentified"] = int(row["anonymousIdentified"])
+        row["identified"] = int(row["identified"])
+        row["neverIdentified"] = int(row["neverIdentified"])
+        return row
+
+    def get_next_page_token(
+        self, response: requests.Response, previous_token: Optional[Any]
+    ) -> Optional[Any]:
+        """Return a token for identifying next page or None if no more pages."""
+        if self.next_page_token_jsonpath:
+            all_matches = extract_jsonpath(
+                self.next_page_token_jsonpath, response.json()
+            )
+            first_match = next(iter(all_matches), None)
+            next_page_token = first_match
+        else:
+            next_page_token = response.headers.get("X-Next-Page", None)
+        if next_page_token is None:
+            start_date = datetime.datetime.strptime(parse_qs(urlparse(response.request.url).query)['period'][0], '%Y-%m-%dT%H:%M:%SZ')
+            this_month = datetime.datetime.today().replace(day=1, hour=0, minute=0, second=0)
+            if start_date.date() < this_month.date():
+                next_page_token = add_months(start_date, 1)
+        return next_page_token
+
+    def get_url_params(
+        self, context: Optional[dict], next_page_token: Optional[Any]
+    ) -> Dict[str, Any]:
+        """Return a dictionary of values to be used in URL parameterization."""
+        if isinstance(next_page_token, datetime.datetime):
+            start_date = next_page_token
+        else:
+            start_date = self.get_starting_timestamp(context)
+        params: dict = {
+            'pagination.count': 100,
+            'period': start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+        }
+        if next_page_token and not isinstance(next_page_token, datetime.datetime):
+            params["pagination.cursor"] = next_page_token
+        return params
+
+
+class SourceMTUUUsageDailyStream(MTUUsageDailyStream):
+    name = "source_mtu_usage_daily"
+    path = "/usage/mtu/sources/daily"
+    records_jsonpath = "$.data.dailyPerSourceMTUUsage[*]"
+    schema = th.PropertiesList(
+        th.Property("sourceId", th.StringType),
+        th.Property("periodStart", th.NumberType),
+        th.Property("periodEnd", th.NumberType),
+        th.Property("anonymous", th.IntegerType),
+        th.Property("anonymousIdentified", th.IntegerType),
+        th.Property("identified", th.IntegerType),
+        th.Property("neverIdentified", th.IntegerType),
+        th.Property("timestamp", th.DateTimeType),
+    ).to_dict()
+
+ 
+class WorkspaceMTUUUsageDailyStream(MTUUsageDailyStream):
+    name = "workspace_mtu_usage_daily"
+    path = "/usage/mtu/daily"
+    records_jsonpath = "$.data.dailyWorkspaceMTUUsage[*]"
+    schema = th.PropertiesList(
+        th.Property("periodStart", th.NumberType),
+        th.Property("periodEnd", th.NumberType),
+        th.Property("anonymous", th.IntegerType),
+        th.Property("anonymousIdentified", th.IntegerType),
+        th.Property("identified", th.IntegerType),
+        th.Property("neverIdentified", th.IntegerType),
+        th.Property("timestamp", th.DateTimeType),
+    ).to_dict()
