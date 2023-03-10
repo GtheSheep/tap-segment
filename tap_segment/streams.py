@@ -125,7 +125,7 @@ class SourceMTUUUsageDailyStream(SegmentStream):
         if isinstance(next_page_token, datetime.datetime):
             start_date = next_page_token
         else:
-            start_date = self.config.get('start_date')
+            start_date = self.get_starting_timestamp(context)
         params: dict = {
             'pagination.count': 100,
             'period': start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -189,7 +189,7 @@ class WorkspaceMTUUUsageDailyStream(SegmentStream):
         if isinstance(next_page_token, datetime.datetime):
             start_date = next_page_token
         else:
-            start_date = self.config.get('start_date')
+            start_date = self.get_starting_timestamp(context)
         params: dict = {
             'pagination.count': 100,
             'period': start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
