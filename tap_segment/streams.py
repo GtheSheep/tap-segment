@@ -1,12 +1,11 @@
 """Stream type classes for tap-segment."""
 import datetime
 import calendar
-
 from urllib.parse import parse_qs, urlparse
 
+import requests
 from pathlib import Path
 from typing import Any, Dict, Optional, Union, List, Iterable
-
 from singer_sdk import typing as th  # JSON Schema typing helpers
 
 from tap_segment.client import SegmentStream
