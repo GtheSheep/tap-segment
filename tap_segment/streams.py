@@ -1,5 +1,8 @@
 """Stream type classes for tap-segment."""
 import datetime
+import calendar
+
+from urllib.parse import parse_qs, urlparse
 
 from pathlib import Path
 from typing import Any, Dict, Optional, Union, List, Iterable
@@ -61,6 +64,14 @@ class EventsVolumeDailyStream(SegmentStream):
         return params
 
 
+def add_months(sourcedate, months):
+    month = sourcedate.month - 1 + months
+    year = sourcedate.year + month // 12
+    month = month % 12 + 1
+    day = min(sourcedate.day, calendar.monthrange(year,month)[1])
+    return datetime.date(year, month, day)
+
+
 class SourceMTUUUsageDailyStream(SegmentStream):
     name = "source_mtu_usage_daily"
     path = "/usage/mtu/sources/daily"
@@ -84,6 +95,40 @@ class SourceMTUUUsageDailyStream(SegmentStream):
         row["identified"] = int(row["identified"])
         row["neverIdentified"] = int(row["neverIdentified"])
         return row
+
+    def get_next_page_token(
+        self, response: requests.Response, previous_token: Optional[Any]
+    ) -> Optional[Any]:
+        """Return a token for identifying next page or None if no more pages."""
+        if self.next_page_token_jsonpath:
+            all_matches = extract_jsonpath(
+                self.next_page_token_jsonpath, response.json()
+            )
+            first_match = next(iter(all_matches), None)
+            next_page_token = first_match
+        else:
+            next_page_token = response.headers.get("X-Next-Page", None)
+        start_date = datetime.datetime.strptime(parse_qs(urlparse(response.request.url).query)['period'][0], '%Y-%m-%d')
+        this_month = datetime.datetime.today().replace(day=1)
+        if not next_page_token and start_date < this_month:
+            next_page_token = add_months(this_month, 1)
+        return next_page_token
+
+    def get_url_params(
+        self, context: Optional[dict], next_page_token: Optional[Any]
+    ) -> Dict[str, Any]:
+        """Return a dictionary of values to be used in URL parameterization."""
+        if isinstance(next_page_token, datetime.datetime):
+            start_date = next_page_token
+        else:
+            start_date = self.config.get('start_date')
+        params: dict = {
+            'pagination.count': 100,
+            'period': start_date
+        }
+        if next_page_token and not isinstance(next_page_token, datetime.datetime):
+            params["pagination.cursor"] = next_page_token
+        return params
 
 
 class WorkspaceMTUUUsageDailyStream(SegmentStream):
