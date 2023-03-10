@@ -76,7 +76,7 @@ class MTUUsageDailyStream(SegmentStream):
     primary_keys = ["timestamp"]
     replication_key = "timestamp"
 
-   def post_process(self, row: dict, context: Optional[dict] = None) -> Optional[dict]:
+    def post_process(self, row: dict, context: Optional[dict] = None) -> Optional[dict]:
         row["anonymous"] = int(row["anonymous"])
         row["anonymousIdentified"] = int(row["anonymousIdentified"])
         row["identified"] = int(row["identified"])
