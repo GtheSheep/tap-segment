@@ -69,7 +69,7 @@ def add_months(sourcedate, months):
     year = sourcedate.year + month // 12
     month = month % 12 + 1
     day = min(sourcedate.day, calendar.monthrange(year,month)[1])
-    return datetime.datetime(year, month, day, tzinfo=datetime.timezone.utc)
+    return datetime.datetime(year, month, day)
 
 
 class SourceMTUUUsageDailyStream(SegmentStream):
@@ -128,7 +128,7 @@ class SourceMTUUUsageDailyStream(SegmentStream):
             start_date = self.config.get('start_date')
         params: dict = {
             'pagination.count': 100,
-            'period': start_date
+            'period': start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         }
         if next_page_token and not isinstance(next_page_token, datetime.datetime):
             params["pagination.cursor"] = next_page_token
@@ -192,7 +192,7 @@ class WorkspaceMTUUUsageDailyStream(SegmentStream):
             start_date = self.config.get('start_date')
         params: dict = {
             'pagination.count': 100,
-            'period': start_date
+            'period': start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         }
         print("Moo")
         print(next_page_token)
