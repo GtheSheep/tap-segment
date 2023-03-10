@@ -78,6 +78,13 @@ class SourceMTUUUsageDailyStream(SegmentStream):
         th.Property("timestamp", th.DateTimeType),
     ).to_dict()
 
+    def post_process(self, row: dict, context: Optional[dict] = None) -> Optional[dict]:
+        row["anonymous"] = int(row["anonymous"])
+        row["anonymousIdentified"] = int(row["anonymousIdentified"])
+        row["identified"] = int(row["identified"])
+        row["neverIdentified"] = int(row["neverIdentified"])
+        return row
+
 
 class WorkspaceMTUUUsageDailyStream(SegmentStream):
     name = "workspace_mtu_usage_daily"
@@ -94,3 +101,10 @@ class WorkspaceMTUUUsageDailyStream(SegmentStream):
         th.Property("neverIdentified", th.IntegerType),
         th.Property("timestamp", th.DateTimeType),
     ).to_dict()
+
+    def post_process(self, row: dict, context: Optional[dict] = None) -> Optional[dict]:
+        row["anonymous"] = int(row["anonymous"])
+        row["anonymousIdentified"] = int(row["anonymousIdentified"])
+        row["identified"] = int(row["identified"])
+        row["neverIdentified"] = int(row["neverIdentified"])
+        return row
