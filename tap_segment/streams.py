@@ -108,13 +108,14 @@ class SourceMTUUUsageDailyStream(SegmentStream):
             next_page_token = first_match
         else:
             next_page_token = response.headers.get("X-Next-Page", None)
-        start_date = datetime.datetime.strptime(parse_qs(urlparse(response.request.url).query)['period'][0], '%Y-%m-%dT%H:%M:%SZ')
-        this_month = datetime.datetime.today().replace(day=1)
-        print(start_date)
-        print(this_month)
-        print(next_page_token)
-        if not next_page_token and start_date.date() < this_month.date():
-            next_page_token = add_months(start_date, 1)
+        if next_page_token is None:
+            start_date = datetime.datetime.strptime(parse_qs(urlparse(response.request.url).query)['period'][0], '%Y-%m-%dT%H:%M:%SZ')
+            this_month = datetime.datetime.today().replace(day=1, hour=0, minute=0, second=0)
+            print(start_date)
+            print(this_month)
+            print(next_page_token)
+            if start_date.date() < this_month.date():
+                next_page_token = add_months(start_date, 1)
         return next_page_token
 
     def get_url_params(
@@ -169,13 +170,14 @@ class WorkspaceMTUUUsageDailyStream(SegmentStream):
             next_page_token = first_match
         else:
             next_page_token = response.headers.get("X-Next-Page", None)
-        start_date = datetime.datetime.strptime(parse_qs(urlparse(response.request.url).query)['period'][0], '%Y-%m-%dT%H:%M:%SZ')
-        this_month = datetime.datetime.today().replace(day=1)
-        print(start_date)
-        print(this_month)
-        print(next_page_token)
-        if not next_page_token and start_date.date() < this_month.date():
-            next_page_token = add_months(start_date, 1)
+        if next_page_token is None:
+            start_date = datetime.datetime.strptime(parse_qs(urlparse(response.request.url).query)['period'][0], '%Y-%m-%dT%H:%M:%SZ')
+            this_month = datetime.datetime.today().replace(day=1, hour=0, minute=0, second=0)
+            print(start_date)
+            print(this_month)
+            print(next_page_token)
+            if start_date.date() < this_month.date():
+                next_page_token = add_months(start_date, 1)
         return next_page_token
 
     def get_url_params(
