@@ -111,9 +111,6 @@ class SourceMTUUUsageDailyStream(SegmentStream):
         if next_page_token is None:
             start_date = datetime.datetime.strptime(parse_qs(urlparse(response.request.url).query)['period'][0], '%Y-%m-%dT%H:%M:%SZ')
             this_month = datetime.datetime.today().replace(day=1, hour=0, minute=0, second=0)
-            print(start_date)
-            print(this_month)
-            print(next_page_token)
             if start_date.date() < this_month.date():
                 next_page_token = add_months(start_date, 1)
         return next_page_token
@@ -132,8 +129,6 @@ class SourceMTUUUsageDailyStream(SegmentStream):
         }
         if next_page_token and not isinstance(next_page_token, datetime.datetime):
             params["pagination.cursor"] = next_page_token
-        print("Moo")
-        print(next_page_token)
         return params
 
 
@@ -175,9 +170,6 @@ class WorkspaceMTUUUsageDailyStream(SegmentStream):
         if next_page_token is None:
             start_date = datetime.datetime.strptime(parse_qs(urlparse(response.request.url).query)['period'][0], '%Y-%m-%dT%H:%M:%SZ')
             this_month = datetime.datetime.today().replace(day=1, hour=0, minute=0, second=0)
-            print(start_date)
-            print(this_month)
-            print(next_page_token)
             if start_date.date() < this_month.date():
                 next_page_token = add_months(start_date, 1)
         return next_page_token
@@ -194,8 +186,6 @@ class WorkspaceMTUUUsageDailyStream(SegmentStream):
             'pagination.count': 100,
             'period': start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         }
-        print("Moo")
-        print(next_page_token)
         if next_page_token and not isinstance(next_page_token, datetime.datetime):
             params["pagination.cursor"] = next_page_token
         return params
